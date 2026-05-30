@@ -24,6 +24,8 @@ offset = 100
 xy1 = (posL, 400)
 xy2 = (posL, 850)
 
+detects = []
+
 while 1:
     ret, frame = cap.read()
 
@@ -51,12 +53,18 @@ while 1:
 
     cv2.line(frame, (posL+offset,xy1[1]), (posL+offset,xy2[1]), (255,255,0), 2)
 
+    i = 0
+
     for cnt in countours:
         (x,y,w,h) = cv2.boundingRect(cnt)
         area = cv2.contourArea(cnt)
-        centro = center(x,y,w,h)
-        cv2.circle(frame, centro, 4, (0,0,255), -1)
-        cv2.rectangle(frame, (x,y), (x+w, y+h), (0,255,0), 2)
+        if int(area) > 10000:
+            centro = center(x,y,w,h)
+
+            cv2.putText(frame, str(i), (x+5, y+50), cv2.FONT_HERSHEY_SIMPLEX, 2, (0,255,255), 2)
+            cv2.circle(frame, centro, 4, (0,0,255), -1)
+            cv2.rectangle(frame, (x,y), (x+w, y+h), (0,255,0), 2)
+            i+=1
 
     cv2.imshow("frame", frame)
     #cv2.imshow("gray", gray)

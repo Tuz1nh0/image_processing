@@ -19,7 +19,7 @@ for name in windows:
     cv2.resizeWindow(name, 500, 400)
 
 posL = 1050
-offset = 20
+offset = 100
 
 xy1 = (posL, 400)
 xy2 = (posL, 850)
@@ -47,9 +47,9 @@ while 1:
 
     cv2.line(frame, xy1, xy2, (255,0,0), 3)
 
-    cv2.line(frame, (posL-offset,xy1), (posL-offset,xy2), (255,255,0), 2)
+    cv2.line(frame, (posL-offset,xy1[1]), (posL-offset,xy2[1]), (255,255,0), 2)
 
-    cv2.line(frame, (posL+offset,xy1), (posL+offset,xy2), (255,255,0), 2)
+    cv2.line(frame, (posL+offset,xy1[1]), (posL+offset,xy2[1]), (255,255,0), 2)
 
     for cnt in countours:
         (x,y,w,h) = cv2.boundingRect(cnt)

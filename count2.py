@@ -49,7 +49,7 @@ while True:
     cv2.rectangle(threshold, (x,y), (x+w, y+h), (255,255,255), 6)
 
     cv2.putText(frame, str(white), (x-30,y-50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,0,255), 5)
-    cv2.putText(frame, "TOTAL: "+str(counter), (x+100, y), cv2.FONT_HERSHEY_SIMPLEX, 3, (255, 0, 0), 5)
+    cv2.putText(frame, "TOTAL: "+str(counter), (150,200), cv2.FONT_HERSHEY_SIMPLEX, 3, (255,0,0), 5)
 
     cv2.imshow("frame", frame)
     cv2.imshow("gray", gray)

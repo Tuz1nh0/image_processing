@@ -26,6 +26,8 @@ xy2 = (posL, 850)
 
 detects = []
 
+total = 0
+
 while 1:
     ret, frame = cap.read()
 
@@ -47,11 +49,11 @@ while 1:
 
     countours, hierarchy = cv2.findContours(closing, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-    cv2.line(frame, xy1, xy2, (255,0,0), 3)
+    cv2.line(frame, xy1, xy2, (255,0,0), 10)
 
-    cv2.line(frame, (posL-offset,xy1[1]), (posL-offset,xy2[1]), (255,255,0), 2)
+    cv2.line(frame, (posL-offset,xy1[1]), (posL-offset,xy2[1]), (255,255,0), 10)
 
-    cv2.line(frame, (posL+offset,xy1[1]), (posL+offset,xy2[1]), (255,255,0), 2)
+    cv2.line(frame, (posL+offset,xy1[1]), (posL+offset,xy2[1]), (255,255,0), 10)
 
     i = 0
 
@@ -62,9 +64,34 @@ while 1:
             centro = center(x,y,w,h)
 
             cv2.putText(frame, str(i), (x+5, y+50), cv2.FONT_HERSHEY_SIMPLEX, 2, (0,255,255), 2)
-            cv2.circle(frame, centro, 4, (0,0,255), -1)
-            cv2.rectangle(frame, (x,y), (x+w, y+h), (0,255,0), 2)
+            cv2.circle(frame, centro, 10, (0,0,255), -1)
+            cv2.rectangle(frame, (x,y), (x+w, y+h), (0,255,0), 10)
+
+            if len(detects) <= i:
+                detects.append([])
+            
+            if centro[0] > posL-offset and centro [0] < posL+offset:
+                detects[i].append(centro)
+            else:
+                detects[i].clear()
+
             i+=1
+
+    if len(countours) == 0:
+        detects.clear()
+
+    for detect in detects:
+        for (count,line) in enumerate(detect):
+            if detect[count-1][0] < posL and line[0] > posL:
+                detects.clear()
+                total+=1
+                cv2.line(frame, xy1, xy2, (0,0,255), 5)
+                continue
+
+            if count > 0:
+                cv2.line(frame, detect[count-1], line, (0,0,255), 5)
+
+    cv2.putText(frame, "TOTAL: "+str(total), (150,200), cv2.FONT_HERSHEY_SIMPLEX, 3, (0,255,255), 2)
 
     cv2.imshow("frame", frame)
     #cv2.imshow("gray", gray)

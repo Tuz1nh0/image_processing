@@ -31,9 +31,9 @@ total = 0
 while 1:
     ret, frame = cap.read()
 
-    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    #gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
-    fgmask = fgbg.apply(gray)
+    fgmask = fgbg.apply(frame)
 
     retval, threshold = cv2.threshold(fgmask, 10, 255, cv2.THRESH_BINARY)
 

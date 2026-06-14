@@ -12,16 +12,16 @@ cap = cv2.VideoCapture('teste_final.mp4')
 
 fgbg = cv2.createBackgroundSubtractorMOG2(detectShadows=True)
 
-windows = ["frame", "fgmask", "threshold", "opening", "dilatation", "closing"]
+windows = ["frame", "gray", "fgmask", "threshold", "opening", "dilatation", "closing"]
 for name in windows:
     cv2.namedWindow(name, cv2.WINDOW_NORMAL)  # Permite redimensionar
     cv2.resizeWindow(name, 500, 400)
 
-posL = 1050
+posL = 1400
 offset = 100
 
-xy1 = (posL, 400)
-xy2 = (posL, 850)
+xy1 = (200, posL)
+xy2 = (800, posL)
 
 detects = []
 
@@ -55,17 +55,49 @@ while True:
 
     countours, hierarchy = cv2.findContours(dilatation, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-    for (i,c)  in enumerate(countours):
-        area = cv2.contourArea(c)
-        if int(area) > 5000:
-            (x,y,w,h) = cv2.boundingRect(c)
-            centro = center(x,y,w,h)
-            cv2.circle(frame, centro, 10, (0,0,255), -1)
+    cv2.line(frame, xy1, xy2, (255,0,255), 4)
+    cv2.line(frame, (xy1[0], posL-offset), (xy2[0], posL-offset), (255, 255, 0), 4)
+    cv2.line(frame, (xy1[0], posL+offset), (xy2[0], posL+offset), (255, 255, 0), 4)
 
+    i = 0
+    for cnt in countours:
+        area = cv2.contourArea(cnt)
+        if int(area) > 5000:
+            (x,y,w,h) = cv2.boundingRect(cnt)
+            centro = center(x,y,w,h)
+
+            cv2.putText(frame, str(i), (x+5, y+15), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 255), 2)
+            cv2.circle(frame, centro, 10, (0,0,255), -1)
             cv2.rectangle(frame, (x,y), (x+w,y+h), (0,255,0), 2)
-        
+            
+            if len(detects) <= i:
+                detects.append([])
+
+            if centro[1] > posL-offset and centro[1] < posL+offset:
+                detects[i].append(centro)
+            else:
+                detects[i].clear()
+
+            i += 1
+
+    if len(countours) == 0:
+        detects.clear()
+    else:
+        for detect in detects:
+            for (c,l) in enumerate(detect):
+                if detect[c-1][1] > posL and l[1] < posL:
+                    detect.clear()
+                    total += 1
+                    cv2.line(frame, xy1, xy2, (0,255,0), 5)
+                    continue
+
+                if c > 0:
+                    cv2.line(frame, detect[c-1], l, (0,0,255), 1) 
+
+    cv2.putText(frame, "TOTAL: "+str(total), (60,90), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0,255,255), 2)
+
     cv2.imshow("frame", frame)
-    #cv2.imshow("gray", gray)
+    cv2.imshow("gray", gray)
     cv2.imshow("opening", opening)
     cv2.imshow("fgmask", fgmask)
     cv2.imshow("threshold", threshold)

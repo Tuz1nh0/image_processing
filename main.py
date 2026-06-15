@@ -12,7 +12,7 @@ cap = cv2.VideoCapture('teste_final.mp4')
 
 fgbg = cv2.createBackgroundSubtractorMOG2(detectShadows=True)
 
-windows = ["frame", "gray", "fgmask", "threshold", "opening", "dilatation", "closing"]
+windows = ["frame", "roi", "threshold", "opening", "dilatation", "closing"]
 for name in windows:
     cv2.namedWindow(name, cv2.WINDOW_NORMAL)  # Permite redimensionar
     cv2.resizeWindow(name, 500, 400)
@@ -34,18 +34,17 @@ while True:
         print("Fim do vídeo ou erro na leitura.")
         break
 
-    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    height, width, _ = frame.shape
+    roi = frame[500: 1500, 200: 800]
+
+    gray = cv2.cvtColor(roi, cv2.COLOR_BGR2GRAY)
 
     fgmask = fgbg.apply(gray)
 
     retval, threshold = cv2.threshold(fgmask, 250, 255, cv2.THRESH_BINARY)
 
-    #kernel = np.ones((5,5), np.uint8)
-    #small_kernel = np.ones((3,3), np.uint8)
-    #large_kernel = np.ones((7,7), np.uint8)
     kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
-    #small_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (5, 5))
-    #large_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (30, 30))
+    #large_kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (9, 9))
 
     opening = cv2.morphologyEx(threshold, cv2.MORPH_OPEN, kernel, iterations=1)
 
@@ -62,13 +61,13 @@ while True:
     i = 0
     for cnt in countours:
         area = cv2.contourArea(cnt)
-        if int(area) > 5000:
+        if int(area) > 6500:
             (x,y,w,h) = cv2.boundingRect(cnt)
             centro = center(x,y,w,h)
 
-            cv2.putText(frame, str(i), (x+5, y+15), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 255), 2)
-            cv2.circle(frame, centro, 10, (0,0,255), -1)
-            cv2.rectangle(frame, (x,y), (x+w,y+h), (0,255,0), 2)
+            cv2.putText(roi, str(i), (x+5, y+15), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 255), 3)
+            cv2.circle(roi, centro, 10, (0,0,255), -1)
+            cv2.rectangle(roi, (x,y), (x+w,y+h), (0,255,0), 3)
             
             if len(detects) <= i:
                 detects.append([])
@@ -94,12 +93,13 @@ while True:
                 if c > 0:
                     cv2.line(frame, detect[c-1], l, (0,0,255), 1) 
 
-    cv2.putText(frame, "TOTAL: "+str(total), (60,90), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0,255,255), 2)
-
+    cv2.putText(frame, "TOTAL: "+str(total), (60,90), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0,255,255), 3)
+    
     cv2.imshow("frame", frame)
-    cv2.imshow("gray", gray)
+    cv2.imshow("roi", roi)
+    #cv2.imshow("gray", gray)
     cv2.imshow("opening", opening)
-    cv2.imshow("fgmask", fgmask)
+    #cv2.imshow("fgmask", fgmask)
     cv2.imshow("threshold", threshold)
     cv2.imshow("dilatation", dilatation)
     cv2.imshow("closing", closing)

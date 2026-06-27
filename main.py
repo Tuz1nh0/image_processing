@@ -1,24 +1,12 @@
 import cv2
 import numpy as np
 
-points = []
-
-def draw_circle(event,x,y,flags,param):
-    global points
-    if event == cv2.EVENT_LBUTTONDOWN:
-        if len(points) == 2:
-            points = []
-        points.append((x,y))
-
 def center(x,y,w,h):
     x1 = int(w/2)
     y1 = int(h/2)
     cx = x+x1
     cy = y+y1
     return cx,cy
-
-cv2.namedWindow("frame")
-cv2.setMouseCallback("frame", draw_circle)
 
 cap = cv2.VideoCapture('teste_final.mp4')
 
@@ -45,15 +33,6 @@ while True:
     if not ret:
         print("Fim do vídeo ou erro na leitura.")
         break
-
-    for pt in points:
-        cv2.circle(frame, pt, 5, (0,255,255), -1)
-
-    if len(points) == 2:
-        pt1 = points[0]
-        pt2 = points[1]
-        distance = math.hypot(pt2[0] - pt1[0], pt2[1] - pt1[1])
-        cv2.putText(frame, fr"{int(distance)}", (pt1[0], pt1[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
 
     height, width, _ = frame.shape
     roi = frame[500: 1500, 200: 800]

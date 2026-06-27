@@ -18,6 +18,9 @@ cap = cv2.VideoCapture('teste_final.mp4')
 while True:
     ret, frame = cap.read()
 
+    height, width, _ = frame.shape
+    roi = frame[500: 1500, 200: 800]
+
     if not ret:
         print("Fim do vídeo ou erro na leitura.")
         break

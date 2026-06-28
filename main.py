@@ -1,5 +1,8 @@
 import cv2
 import numpy as np
+import math
+
+paused = False
 
 def center(x,y,w,h):
     x1 = int(w/2)
@@ -17,6 +20,8 @@ for name in windows:
     cv2.namedWindow(name, cv2.WINDOW_NORMAL)
     cv2.resizeWindow(name, 700, 500)
 
+ratio = 3 / 111
+
 posL = 1400
 offset = 100
 
@@ -27,17 +32,27 @@ detects = []
 
 total = 0
 
+ret, frame = cap.read()
+
 while True:
-    ret, frame = cap.read()
 
     if not ret:
         print("Fim do vídeo ou erro na leitura.")
         break
 
-    height, width, _ = frame.shape
-    roi = frame[500: 1500, 200: 800]
+    if not paused:
+        ret, next_frame = cap.read()
+        if ret:
+            frame = next_frame
 
-    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    frame_display = frame.copy()
+
+    height, width, _ = frame_display.shape
+    roi = frame_display[500: 1500, 200: 800]
+
+#-----------------------------------------------------------------------------------------------------------------------------
+
+    gray = cv2.cvtColor(frame_display, cv2.COLOR_BGR2GRAY)
 
     fgmask = fgbg.apply(gray)
 
@@ -54,9 +69,11 @@ while True:
 
     countours, hierarchy = cv2.findContours(dilatation, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-    cv2.line(frame, xy1, xy2, (255,0,255), 4)
-    cv2.line(frame, (xy1[0], posL-offset), (xy2[0], posL-offset), (255, 255, 0), 4)
-    cv2.line(frame, (xy1[0], posL+offset), (xy2[0], posL+offset), (255, 255, 0), 4)
+#--------------------------------------------------------------------------------------------------------------------------------
+
+    cv2.line(frame_display, xy1, xy2, (255,0,255), 4)
+    cv2.line(frame_display, (xy1[0], posL-offset), (xy2[0], posL-offset), (255, 255, 0), 4)
+    cv2.line(frame_display, (xy1[0], posL+offset), (xy2[0], posL+offset), (255, 255, 0), 4)
 
     i = 0
     for cnt in countours:
@@ -65,9 +82,15 @@ while True:
             (x,y,w,h) = cv2.boundingRect(cnt)
             centro = center(x,y,w,h)
 
-            cv2.putText(frame, str(i), (x+5, y+15), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 255), 3)
-            cv2.circle(frame, centro, 10, (0,0,255), -1)
-            cv2.rectangle(frame, (x,y), (x+w,y+h), (0,255,0), 3)
+            cv2.putText(frame_display, str(i), (x+5, y+30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,255,255), 4)
+            cv2.circle(frame_display, centro, 10, (0,0,255), -1)
+            cv2.rectangle(frame_display, (x,y), (x+w,y+h), (0,255,0), 3)
+            
+            cm_x = (w * 3) / 111
+            cm_y = (h * 4.5) / 169 
+            cv2.putText(frame_display, fr"{int(cm_x)}cm", (x, y+h+30), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255,0,0), 3) 
+            cv2.putText(frame_display, fr"{int(cm_y)}cm", (x+w+5, y+5), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255,0,0), 3)
+           
             
             if len(detects) <= i:
                 detects.append([])
@@ -87,15 +110,15 @@ while True:
                 if detect[c-1][1] > posL and l[1] < posL:
                     detect.clear()
                     total += 1
-                    cv2.line(frame, xy1, xy2, (0,255,0), 5)
+                    cv2.line(frame_display, xy1, xy2, (0,255,0), 5)
                     continue
 
                 if c > 0:
-                    cv2.line(frame, detect[c-1], l, (0,0,255), 1) 
+                    cv2.line(frame_display, detect[c-1], l, (0,0,255), 1) 
 
-    cv2.putText(frame, "TOTAL: "+str(total), (60,90), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0,255,255), 3)
+    cv2.putText(frame_display, "TOTAL: "+str(total), (60,90), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0,255,255), 3)
     
-    cv2.imshow("frame", frame)
+    cv2.imshow("frame", frame_display)
     cv2.imshow("roi", roi)
     #cv2.imshow("gray", gray)
     cv2.imshow("opening", opening)
@@ -104,8 +127,12 @@ while True:
     cv2.imshow("dilatation", dilatation)
     cv2.imshow("closing", closing)
 
-    if cv2.waitKey(30) & 0xFF == ord('q'):
+    key = cv2.waitKey(30) & 0xFF
+
+    if key == ord('q'):
         break
+    elif key == 32:
+        paused = not paused
 
 cap.release()
 cv2.destroyAllWindows()

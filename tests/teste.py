@@ -5,6 +5,13 @@ import csv
 
 paused = False
 
+def center(x,y,w,h):
+    x1 = int(w/2)
+    y1 = int(h/2)
+    cx = x+x1
+    cy = y+y1
+    return cx,cy
+
 cap = cv2.VideoCapture('teste_final.mp4')
 
 fgbg = cv2.createBackgroundSubtractorMOG2(detectShadows=True)
@@ -72,20 +79,18 @@ while True:
     i = 0
     for cnt in countours:
         area = cv2.contourArea(cnt)
-        if int(area) > 6500 and len(cnt) >= 5:
-            ellipse = cv2.fitEllipse(cnt)
-            (cx,cy), (w,h), angle = ellipse
-            if w > 1000 or h > 1000:
-                continue
-            centro = (int(cx), int(cy))
-            cv2.putText(roi, str(i), (int(cx)-10, int(cy)-10), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,255,255), 4)
-            cv2.circle(roi, centro, 10, (0,0,255), -1)
-            cv2.ellipse(roi, ellipse, (0,255,0), 3)
+        if int(area) > 6500:
+            (x,y,w,h) = cv2.boundingRect(cnt)
+            centro = center(x,y,w,h)
 
-            cm_x = float(w * 3) / 111
-            cm_y = float(h * 4.5) / 169 
-            cv2.putText(roi, f"{cm_x:.1f}cm", (int(cx - w/2), int(cy + h/2 + 30)), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255,0,0), 3) 
-            cv2.putText(roi, f"{cm_y:.1f}cm", (int(cx + w/2 + 5), int(cy)), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255,0,0), 3)
+            cv2.putText(roi, str(i), (x+5, y+30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,255,255), 4)
+            cv2.circle(roi, centro, 10, (0,0,255), -1)
+            cv2.rectangle(roi, (x,y), (x+w,y+h), (0,255,0), 3)
+            
+            cm_x = int((w * 3) / 111)
+            cm_y = int((h * 4.5) / 169) 
+            cv2.putText(roi, f"{cm_x}cm", (x, y+h+30), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255,0,0), 3) 
+            cv2.putText(roi, f"{cm_y}cm", (x+w+5, y+5), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255,0,0), 3)
             
             if len(detects) <= i:
                 detects.append([])

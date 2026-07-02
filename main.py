@@ -7,9 +7,7 @@ paused = False
 
 cap = cv2.VideoCapture('teste_final.mp4')
 
-fgbg = cv2.createBackgroundSubtractorMOG2(detectShadows=True)
-
-windows = ["frame", "roi", "threshold", "opening", "dilatation", "closing"]
+windows = ["frame", "roi"] #need to add the other windows
 for name in windows:
     cv2.namedWindow(name, cv2.WINDOW_NORMAL)
     cv2.resizeWindow(name, 500, 350)
@@ -57,20 +55,20 @@ while True:
 
     opening = cv2.morphologyEx(threshold, cv2.MORPH_OPEN, kernel, iterations=1)
 
-    dilatation = cv2.dilate(threshold, kernel, iterations=2)
+    dilatation = cv2.dilate(opening, kernel, iterations=2)
 
-    closing = cv2.morphologyEx(dilatation, cv2.MORPH_CLOSE, kernel, iterations=2)
+    closing = cv2.morphologyEx(dilatation, cv2.MORPH_CLOSE, kernel, iterations=5)
 
-    countours, hierarchy = cv2.findContours(closing, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    contours, hierarchy = cv2.findContours(closing, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
 #-------------------------------------------------COUNT AND MEASUREMENT LOGICS--------------------------------------------
-
+    
     cv2.line(roi, xy1, xy2, (255,0,255), 4)
     cv2.line(roi, (xy1[0], posL-offset), (xy2[0], posL-offset), (255, 255, 0), 4)
     cv2.line(roi, (xy1[0], posL+offset), (xy2[0], posL+offset), (255, 255, 0), 4)
-
+    
     i = 0
-    for cnt in countours:
+    for cnt in contours:
         area = cv2.contourArea(cnt)
         if int(area) > 6500 and len(cnt) >= 5:
             ellipse = cv2.fitEllipse(cnt)
@@ -81,7 +79,7 @@ while True:
             cv2.putText(roi, str(i), (int(cx)-10, int(cy)-10), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,255,255), 4)
             cv2.circle(roi, centro, 10, (0,0,255), -1)
             cv2.ellipse(roi, ellipse, (0,255,0), 3)
-
+            
             cm_x = float(w * 3) / 111
             cm_y = float(h * 4.5) / 169 
             cv2.putText(roi, f"{cm_x:.1f}cm", (int(cx - w/2), int(cy + h/2 + 30)), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255,0,0), 3) 
@@ -96,8 +94,8 @@ while True:
                 detects[i].clear()
 
             i += 1
-
-    if len(countours) == 0:
+    
+    if len(contours) == 0:
         detects.clear()
     else:
         for detect in detects:
@@ -122,10 +120,10 @@ while True:
     cv2.imshow("roi", roi)
     #cv2.imshow("gray", gray)
     #cv2.imshow("blur", blur)
-    cv2.imshow("threshold", threshold)
-    cv2.imshow("opening", opening)
-    cv2.imshow("dilatation", dilatation)
-    cv2.imshow("closing", closing)
+    #cv2.imshow("threshold", threshold)
+    #cv2.imshow("opening", opening)
+    #cv2.imshow("dilatation", dilatation)
+    #cv2.imshow("closing", closing)
 
     key = cv2.waitKey(30) & 0xFF
 
